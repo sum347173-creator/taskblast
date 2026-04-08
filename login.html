@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TaskBlast – Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <style>
+    body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 100%);
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+    .card {
+    width: 400px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(24px);
+    border-radius: 28px;
+    padding: 40px 36px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 60px rgba(236,72,153,0.1);
+    }
+    .input-field {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+    transition: border 0.2s;
+    }
+    .input-field:focus {
+    border: 1px solid #ec4899;
+    box-shadow: 0 0 10px rgba(236,72,153,0.2);
+    }
+    .input-field::placeholder { color: rgba(255,255,255,0.3); }
+    .login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #ec4899, #a855f7);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(236,72,153,0.4);
+    transition: opacity 0.2s;
+    margin-top: 4px;
+    }
+    .login-btn:hover { opacity: 0.9; }
+    #errorMsg {
+    color: #ec4899;
+    font-size: 13px;
+    margin-top: 12px;
+    text-align: center;
+    display: none;
+    background: rgba(236,72,153,0.1);
+    padding: 8px;
+    border-radius: 8px;
+    }
+</style>
+</head>
+<body>
+<div class="card">
+    <div style="display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:700;font-size:14px;padding:6px 18px;border-radius:999px;margin-bottom:20px;border:2px solid #ec4899;box-shadow:0 0 12px #ec4899;letter-spacing:2px;text-shadow:0 0 8px #ec4899;">
+    ✦ 2026 ✦
+    </div>
+    <h1 style="font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:8px;">
+    Task<span style="color:#ec4899;">Blast</span>
+    </h1>
+    <p style="color:rgba(255,255,255,0.4);font-size:13px;margin-bottom:28px;">Login to your account</p>
+
+    <input type="email" id="email" class="input-field" placeholder="📧 Email address" />
+    <input type="password" id="password" class="input-field" placeholder="🔒 Password" />
+    <button id="loginBtn" class="login-btn">🚀 Login</button>
+    <p id="errorMsg">❌ Invalid email or password!</p>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://usuxjrmhwgiefrhimvxw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdXhqcm1od2dpZWZyaGltdnh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTM2MTcsImV4cCI6MjA5MDUyOTYxN30.MrpVZIWrivWJCNFjIHoaFO4tz2PWLEFP5CI6XlWB7EU';
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) {
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+    }
+
+      // Get role from profiles table
+    const { data: profile } = await db
+        .from('profiles')
+        .select('role, name')
+        .eq('email', email)
+        .single();
+
+    localStorage.setItem('userEmail', email);
+    localStorage.setItem('userRole', profile.role);
+    localStorage.setItem('userName', profile.name);
+
+      // Redirect
+    window.location.href = './index.html';
+    });
+  </script>
+</body>
+</html>

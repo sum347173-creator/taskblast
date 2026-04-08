@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TaskBlast – Team Task Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 100%);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+  .card {
+  width: 100%;
+  max-width: 460px;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(24px);
+  border-radius: 28px;
+  padding: 36px 32px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-sizing: border-box;
+}
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 13px 16px;
+    }
+    .task-item.done .task-text {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .check-btn {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: transparent;
+      color: #ec4899;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .del-btn {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.3);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .del-btn:hover { color: #ec4899; }
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin: 20px 0;
+    }
+    select {
+      background: rgba(255,255,255,0.08);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+    }
+    select option { background: #1a0533; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- Badge -->
+    <div style="display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:700;font-size:14px;padding:6px 18px;border-radius:999px;margin-bottom:16px;border:2px solid #ec4899;box-shadow:0 0 12px #ec4899, 0 0 30px #ec489955;letter-spacing:2px;text-shadow:0 0 8px #ec4899;">
+      ✦ 2026 ✦
+    </div>
+      
+    <!-- Notification Bell -->
+  <div style="position:relative;display:inline-block;float:right;margin-top:-10px;">
+  <button id="bellBtn" onclick="toggleNotifications()"
+    style="background:transparent;border:none;font-size:22px;cursor:pointer;">🔔</button>
+  <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ec4899;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;">0</span>
+  <div id="notifDropdown" style="display:none;position:absolute;right:0;top:36px;width:280px;background:#1a0533;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px;z-index:999;box-shadow:0 0 30px rgba(0,0,0,0.5);">
+    <p style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;letter-spacing:2px;margin-bottom:8px;">NOTIFICATIONS</p>
+    <div id="notifList"><p style="color:rgba(255,255,255,0.3);font-size:13px;">No notifications</p></div>
+    <button onclick="markAllRead()" style="margin-top:8px;width:100%;background:rgba(255,255,255,0.05);border:none;color:rgba(255,255,255,0.4);padding:6px;border-radius:8px;cursor:pointer;font-size:12px;">Mark all read ✓</button>
+  </div>
+</div>
+
+    <!-- Title -->
+    <h1 style="font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:12px;">
+      Task<span style="color:#ec4899;">Blast</span>
+    </h1>
+
+    <!-- User Info -->
+    <div id="userInfo" style="margin-bottom:16px;font-size:13px;color:#fff;"></div>
+
+    <a href="./report.html" style="display:inline-block;margin-bottom:16px;font-size:12px;color:#c8f400;border:1px solid #c8f400;padding:4px 14px;border-radius:999px;text-decoration:none;">📊 Weekly Report</a>
+
+    <!-- Manager Only Controls -->
+    <id="managerControls">
+
+    <!-- Input Row -->
+    <div class="flex gap-2 mb-3">
+      <input id="taskInput" type="text"
+        style="flex:1;background:rgba(255,255,255,0.08);border:none;border-radius:12px;padding:14px 16px;color:#fff;font-size:15px;outline:none;"
+        placeholder="What needs to get done?" />
+      <button id="addBtn"
+        style="background:#ec4899;color:#fff;border:none;border-radius:12px;padding:0 24px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 0 20px rgba(236,72,153,0.4);">
+        ADD
+      </button>
+    </div>
+
+    <!-- Worker Dropdown -->
+    <div class="flex gap-2 mb-6">
+      <select id="workerSelect" style="flex:1;">
+        <option value="">-- Assign to Worker --</option>
+        <option value="Ali">👤 Ali</option>
+        <option value="Sara">👤 Sara</option>
+        <option value="Rahul">👤 Rahul</option>
+        <option value="Priya">👤 Priya</option>
+        <option value="Zain">👤 Zain</option>
+      </select>
+    </div>
+    
+
+    <!-- Priority + Deadline Row -->
+      <div class="flex gap-2 mb-4">
+        <select id="prioritySelect" style="flex:1;background:rgba(255,255,255,0.08);border:none;border-radius:12px;padding:12px;color:#fff;font-size:14px;outline:none;cursor:pointer;">
+          <option value="low">🟢 Low Priority</option>
+          <option value="medium" selected>🟡 Medium Priority</option>
+          <option value="high">🔴 High Priority</option>
+        </select>
+        <input id="deadlineInput" type="date"
+          style="flex:1;background:rgba(255,255,255,0.08);border:none;border-radius:12px;padding:12px;color:#fff;font-size:14px;outline:none;cursor:pointer;"/>
+      </div>
+    </di>
+    <!-- managerControls end -->
+    
+    <!-- My Tasks Label -->
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;font-weight:700;letter-spacing:2px;margin-bottom:12px;">MY TASKS</p>
+
+    <!-- Empty State -->
+    <div id="emptyState" style="text-align:center;padding:40px 0;color:rgba(255,255,255,0.3);">
+      🚀<br><br>No tasks yet — add one above!
+    </div>
+
+    <!-- Task List -->
+    <ul id="taskList" class="space-y-2"></ul>
+
+    <hr class="divider">
+
+    <!-- Stats -->
+    <div style="display:flex;justify-content:space-around;text-align:center;">
+      <div>
+        <div id="totalCount" style="font-size:22px;font-weight:800;color:#fff;">0</div>
+        <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);">TOTAL</div>
+      </div>
+      <div>
+        <div id="pendingCount" style="font-size:22px;font-weight:800;color:#ec4899;">0</div>
+        <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);">PENDING</div>
+      </div>
+      <div>
+        <div id="doneCount" style="font-size:22px;font-weight:800;color:#c8f400;">0</div>
+        <div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);">DONE</div>
+      </div>
+    </div>
+
+  </div>
+  <script src="./script.js"></script>
+</body>
+</html>
