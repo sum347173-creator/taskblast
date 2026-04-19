@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TaskBlast – Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 100%);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(24px);
+      border-radius: 28px;
+      padding: 40px 36px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 0 60px rgba(236,72,153,0.1);
+      box-sizing: border-box;
+    }
+    .input-field {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      transition: border 0.2s;
+    }
+    .input-field:focus {
+      border: 1px solid #ec4899;
+      box-shadow: 0 0 10px rgba(236,72,153,0.2);
+    }
+    .input-field::placeholder { color: rgba(255,255,255,0.3); }
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(236,72,153,0.4);
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+    .login-btn:hover { opacity: 0.9; }
+    #errorMsg {
+      color: #ec4899;
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+      background: rgba(236,72,153,0.1);
+      padding: 8px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:700;font-size:14px;padding:6px 18px;border-radius:999px;margin-bottom:20px;border:2px solid #ec4899;box-shadow:0 0 12px #ec4899;letter-spacing:2px;text-shadow:0 0 8px #ec4899;">
+      ✦ 2026 ✦
+    </div>
+    <h1 style="font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:8px;">
+      Task<span style="color:#ec4899;">Blast</span>
+    </h1>
+    <p style="color:rgba(255,255,255,0.4);font-size:13px;margin-bottom:28px;">Login to your account</p>
+
+    <input type="email" id="email" class="input-field" placeholder="📧 Email address" />
+    <input type="password" id="password" class="input-field" placeholder="🔒 Password" />
+    <button id="loginBtn" class="login-btn">🚀 Login</button>
+    <p id="errorMsg">❌ Invalid email or password!</p>
+    <p id="successMsg" style="color:#c8f400;font-size:13px;margin-top:10px;text-align:center;display:none;">✅ Account created! Ab login karo!</p>
+
+    <!-- Register Toggle -->
+    <div style="text-align:center;margin-top:16px;">
+      <span style="color:rgba(255,255,255,0.3);font-size:13px;">Account nahi hai? </span>
+      <button onclick="toggleRegister()" id="toggleBtn"
+        style="background:transparent;border:none;color:#ec4899;font-size:13px;cursor:pointer;text-decoration:underline;">
+        Register karo
+      </button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" style="display:none;margin-top:16px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;">
+      <p style="color:rgba(255,255,255,0.4);font-size:12px;font-weight:700;letter-spacing:2px;margin-bottom:12px;">NEW ACCOUNT</p>
+      <input type="text"     id="regName"     class="input-field" placeholder="👤 Your Name" />
+      <input type="email"    id="regEmail"    class="input-field" placeholder="📧 Email address" />
+      <input type="password" id="regPassword" class="input-field" placeholder="🔒 Password (min 6 chars)" />
+      <button id="registerBtn" class="login-btn" style="background:linear-gradient(135deg,#c8f400,#22c55e);color:#000;">
+        ✅ Create Account
+      </button>
+      <p id="regErrorMsg" style="color:#ec4899;font-size:13px;margin-top:10px;text-align:center;display:none;"></p>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://usuxjrmhwgiefrhimvxw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdXhqcm1od2dpZWZyaGltdnh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTM2MTcsImV4cCI6MjA5MDUyOTYxN30.MrpVZIWrivWJCNFjIHoaFO4tz2PWLEFP5CI6XlWB7EU';
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ===== LOGIN =====
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+
+      const { data: profile } = await db
+        .from('profiles')
+        .select('role, name')
+        .eq('email', email)
+        .single();
+
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('userRole', profile.role);
+      localStorage.setItem('userName', profile.name);
+
+      window.location.href = './index.html';
+    });
+
+    // ===== REGISTER TOGGLE =====
+    function toggleRegister() {
+      const form   = document.getElementById('registerForm');
+      const btn    = document.getElementById('toggleBtn');
+      const isOpen = form.style.display === 'block';
+      form.style.display = isOpen ? 'none' : 'block';
+      btn.textContent    = isOpen ? 'Register karo' : 'Login pe jao';
+    }
+
+    // ===== REGISTER =====
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+      const name     = document.getElementById('regName').value.trim();
+      const email    = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+      const errMsg   = document.getElementById('regErrorMsg');
+
+      if (!name || !email || !password) {
+        errMsg.textContent   = '❌ Sab fields bharein!';
+        errMsg.style.display = 'block';
+        return;
+      }
+      if (password.length < 6) {
+        errMsg.textContent   = '❌ Password kam se kam 6 characters ka ho!';
+        errMsg.style.display = 'block';
+        return;
+      }
+
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) {
+        errMsg.textContent   = '❌ ' + error.message;
+        errMsg.style.display = 'block';
+        return;
+      }
+
+      // Profiles table mein add karo
+      await db.from('profiles').insert({
+        email: email,
+        role:  'worker',
+        name:  name
+      });
+
+      // Success
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('successMsg').style.display   = 'block';
+      document.getElementById('toggleBtn').textContent      = 'Register karo';
+      document.getElementById('email').value                = email;
+      document.getElementById('password').value             = password;
+    });
+  </script>
+</body>
+</html>
